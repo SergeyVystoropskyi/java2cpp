@@ -745,7 +745,7 @@ class Java8Lexer(Lexer):
          
 
             if predIndex == 1:
-                return Character.isJavaIdentifierStart(Character.toCodePoint((char)_input.LA(-2), (char)_input.LA(-1)))
+                return Character.isJavaIdentifierStart(Character.toCodePoint(_input.LA(-2), _input.LA(-1)))
          
 
     def JavaLetterOrDigit_sempred(self, localctx, predIndex):
@@ -754,7 +754,7 @@ class Java8Lexer(Lexer):
          
 
             if predIndex == 3:
-                return Character.isJavaIdentifierPart(Character.toCodePoint((char)_input.LA(-2), (char)_input.LA(-1)))
+                return Character.isJavaIdentifierPart(Character.toCodePoint(_input.LA(-2), _input.LA(-1)))
          
 
 
