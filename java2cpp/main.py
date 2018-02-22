@@ -3,6 +3,7 @@ import argparse
 from antlr4 import *
 from Java8Lexer import Java8Lexer
 from Java8Parser import Java8Parser
+from Listener import Listener
 
 
 def main():
@@ -18,10 +19,10 @@ def main():
     lexer = Java8Lexer(FileStream(args.input))
     stream = CommonTokenStream(lexer)
     parser = Java8Parser(stream)
-    tree = parser.prog()
-#    printer = HelloPrintListener()
-#    walker = ParseTreeWalker()
-#    walker.walk(printer, tree)
+    tree = parser.compilationUnit()
+    listener = Listener()
+    walker = ParseTreeWalker()
+    walker.walk(listener, tree)
 
 
 
