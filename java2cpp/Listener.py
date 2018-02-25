@@ -32,7 +32,14 @@ class Listener(Java8Listener.Java8Listener):
             elif isinstance(c, Java8Parser.MethodHeaderContext):
                 for cc in c.children:
                     if isinstance(cc, Java8Parser.ResultContext):
-                        methodInfo['result'] = cc.children[0].symbol.text
+                        self.processResultContext(cc, methodInfo)
                     elif isinstance(cc, Java8Parser.MethodDeclaratorContext):
-                        methodInfo['name'] = cc.children[0].symbol.text
-        print "tmp"
+                        self.processMethodDeclarationContext(cc, methodInfo)
+
+    def processResultContext(self, ctx, methodInfo):
+        # TODO: add complex return types
+        methodInfo['result'] = ctx.children[0].symbol.text
+
+    def processMethodDeclarationContext(self, ctx, methodInfo):
+        methodInfo['name'] = ctx.children[0].symbol.text
+        params = 
