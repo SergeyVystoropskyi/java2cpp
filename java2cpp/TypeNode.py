@@ -1,7 +1,9 @@
 
 class TypeNode:
-    def __init__(self, type, templateArgs=[], isArray=False):
+    def __init__(self, type, templateArgs=None, isArray=False):
         self._type = type
+        if not templateArgs:
+            templateArgs = []
         self._templateArgs = templateArgs
         self._isArray = isArray
 

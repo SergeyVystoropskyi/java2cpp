@@ -26,6 +26,10 @@ class Listener(Java8Listener.Java8Listener):
         if isinstance(ctx.children[0], TerminalNodeImpl):
             self._type.append(TypeNode(ctx.children[0].symbol.text))
 
+    def enterClassType_lfno_classOrInterfaceType(self, ctx):
+        if isinstance(ctx.children[0], TerminalNodeImpl):
+            self._type.append(TypeNode(ctx.children[0].symbol.text))
+
     def exitUnannArrayType(self, ctx):
         self._type[-1].setIsArray(True)
 
@@ -42,7 +46,10 @@ class Listener(Java8Listener.Java8Listener):
     def exitResult(self, ctx):
         currentMethod = self._currentMethod[-1]
         currentClassName = self._currentClass[-1]
-        self._classInfo[currentClassName]['methods'][currentMethod]["result"] = self._type.pop()
+        if isinstance(ctx.children[0], TerminalNodeImpl):
+            self._classInfo[currentClassName]['methods'][currentMethod]["result"] = TypeNode(ctx.children[0].symbol.text)
+        else:
+            self._classInfo[currentClassName]['methods'][currentMethod]["result"] = self._type.pop()
 
     def enterNormalClassDeclaration(self, ctx):
         CLASS_NAME_IDX = len(ctx.children) - 2
@@ -88,5 +95,5 @@ class Listener(Java8Listener.Java8Listener):
         if 'paramsType' not in self._classInfo[currentClassName]['methods'][currentMethod]:
             self._classInfo[currentClassName]['methods'][currentMethod]['paramsType'] = []
 
-        self._classInfo[currentClassName]['methods'][currentMethod]['params'].append(self._type.pop())
+        self._classInfo[currentClassName]['methods'][currentMethod]['paramsType'].append(self._type.pop())
         self._classInfo[currentClassName]['methods'][currentMethod]['params'].append(ctx.children[0].symbol.text)
