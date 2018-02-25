@@ -16,6 +16,7 @@ def ProcessFile(srcPath, dstPath, override):
     walker = ParseTreeWalker()
     walker.walk(listener, tree)
     #TODO: generate
+    print "done"
 
 def ProcessDirectory(srcPath, dstPath, override):
     for path, subdirs, files in os.walk(srcPath):
