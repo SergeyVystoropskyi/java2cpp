@@ -1,14 +1,48 @@
 import Java8Listener
 from Java8Parser import Java8Parser
 from antlr4.tree.Tree import TerminalNodeImpl
+from TypeNode import TypeNode
 
 class Listener(Java8Listener.Java8Listener):
     def __init__(self):
         self._currentClass = []
         self._classInfo = {}
         self._currentMethod = []
-        self._inFolmalParamList = False
-        self._inResult = False
+        self._type = []
+
+    def enterUnannPrimitiveType(self, ctx):
+        if isinstance(ctx.children[0], TerminalNodeImpl):
+            self._type.append(TypeNode(ctx.children[0].symbol.text))
+
+    def enterIntegralType(self, ctx):
+        if isinstance(ctx.children[0], TerminalNodeImpl):
+            self._type.append(TypeNode(ctx.children[0].symbol.text))
+
+    def enterFloatingPointType(self, ctx):
+        if isinstance(ctx.children[0], TerminalNodeImpl):
+            self._type.append(TypeNode(ctx.children[0].symbol.text))
+
+    def enterUnannClassType_lfno_unannClassOrInterfaceType(self, ctx):
+        if isinstance(ctx.children[0], TerminalNodeImpl):
+            self._type.append(TypeNode(ctx.children[0].symbol.text))
+
+    def exitUnannArrayType(self, ctx):
+        self._type[-1].setIsArray(True)
+
+    def exitArrayType(self, ctx):
+        self._type[-1].setIsArray(True)
+
+    def exitTypeArgumentList(self, ctx):
+        toPop = (len(ctx.children) + 1) / 2
+        popIndex = len(self._type) - toPop
+        typeArgs = self._type[popIndex:]
+        self._type = self._type[:popIndex]
+        self._type[-1].addTeplateArgs(typeArgs)
+
+    def exitResult(self, ctx):
+        currentMethod = self._currentMethod[-1]
+        currentClassName = self._currentClass[-1]
+        self._classInfo[currentClassName]['methods'][currentMethod]["result"] = self._type.pop()
 
     def enterNormalClassDeclaration(self, ctx):
         CLASS_NAME_IDX = len(ctx.children) - 2
@@ -44,22 +78,6 @@ class Listener(Java8Listener.Java8Listener):
             self._classInfo[currentClassName]['methods'][currentMethod]['modifiers'] = []
         self._classInfo[currentClassName]['methods'][currentMethod]['modifiers'].append(ctx.children[0].symbol.text)
 
-    def enterResult(self, ctx):
-        self._inResult = True
-        if isinstance(ctx.children[0], TerminalNodeImpl):
-            currentMethod = self._currentMethod[-1]
-            currentClassName = self._currentClass[-1]
-            self._classInfo[currentClassName]['methods'][currentMethod]['result'] = ctx.children[0].symbol.text
-
-    def exitResult(self, ctx):
-        self._inResult = False
-
-    def enterFormalParameterList(self, ctx):
-        self._inFolmalParamList = True
-
-    def exitFormalParameterList(self, ctx):
-        self._inFolmalParamList = False
-
     def enterVariableDeclaratorId(self, ctx):
         currentMethod = self._currentMethod[-1]
         currentClassName = self._currentClass[-1]
@@ -67,4 +85,8 @@ class Listener(Java8Listener.Java8Listener):
         if 'params' not in self._classInfo[currentClassName]['methods'][currentMethod]:
             self._classInfo[currentClassName]['methods'][currentMethod]['params'] = []
 
+        if 'paramsType' not in self._classInfo[currentClassName]['methods'][currentMethod]:
+            self._classInfo[currentClassName]['methods'][currentMethod]['paramsType'] = []
+
+        self._classInfo[currentClassName]['methods'][currentMethod]['params'].append(self._type.pop())
         self._classInfo[currentClassName]['methods'][currentMethod]['params'].append(ctx.children[0].symbol.text)

@@ -21,3 +21,12 @@ class TypeNode:
             res = "std::vector<" + res + ">"
 
         return res
+
+    def addTemplateArg(self, node):
+        self._templateArgs.append(node)
+
+    def addTeplateArgs(self, args):
+        self._templateArgs.extend(args)
+
+    def setIsArray(self, isArray):
+        self._isArray = isArray
