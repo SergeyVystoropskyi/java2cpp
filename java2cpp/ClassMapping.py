@@ -7,6 +7,10 @@ typeMapping = {
     "classes" : {
         "String" : "std::string",
         "Map" : "std::map",
-        "List" : "std::vector"
+        "List" : "std::vector",
+        "boolean" : "bool",
+        "Double" : "double",
+        "Integer" : "int",
+        "Float" : "float"
     }
 }

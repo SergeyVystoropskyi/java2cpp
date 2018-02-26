@@ -21,6 +21,9 @@ class ClassNode:
             res += u"#include " + i + u"\n"
         return res
 
+    def _generateDefaultConstructorDefinition(self):
+        return u"    " + self._classInfo['name'] + u"(bool derrivedInstance=false);"
+
     def headerString(self):
         res = self._generateMisc()
         res += self._generateHeaderIncludes()
@@ -29,6 +32,7 @@ class ClassNode:
         if 'super' in self._classInfo:
             res += u" : public " + self._classInfo['super'] + u" {\n"
         res += "public:\n"
+        res += self._generateDefaultConstructorDefinition() + u"\n"
 
         for m in self._methods:
             if m.isPublic():
