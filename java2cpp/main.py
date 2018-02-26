@@ -6,13 +6,14 @@ from Java8Lexer import Java8Lexer
 from Java8Parser import Java8Parser
 from Listener import Listener
 from ClassNode import ClassNode
+from ClassMapping import typeMapping
 
 from contextlib import closing
 
 def generateFile(classInfo, dstPath, override):
     assert len(classInfo.keys()) == 1, "Only one class is currently supported"
     className = classInfo[classInfo.keys()[0]]['name']
-    cNode = ClassNode(classInfo[classInfo.keys()[0]])
+    cNode = ClassNode(classInfo[classInfo.keys()[0]], typeMapping)
     headerPath = os.path.join(dstPath, className + ".h")
     cppPath = os.path.join(dstPath, className + ".cpp")
     if not os.path.isfile(headerPath) or override:
@@ -30,7 +31,7 @@ def ProcessFile(srcPath, dstPath, override):
     stream = CommonTokenStream(lexer)
     parser = Java8Parser(stream)
     tree = parser.compilationUnit()
-    listener = Listener()
+    listener = Listener(typeMapping)
     walker = ParseTreeWalker()
     walker.walk(listener, tree)
     generateFile(listener.getClassInfo(), dstPath, override)

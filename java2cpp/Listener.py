@@ -4,11 +4,12 @@ from antlr4.tree.Tree import TerminalNodeImpl
 from TypeNode import TypeNode
 
 class Listener(Java8Listener.Java8Listener):
-    def __init__(self):
+    def __init__(self, typeMapping):
         self._currentClass = []
         self._classInfo = {}
         self._currentMethod = []
         self._type = []
+        self._typeMapping = typeMapping
 
     def enterSuperclass(self, ctx):
         currentClassName = self._currentClass[-1]
@@ -22,23 +23,23 @@ class Listener(Java8Listener.Java8Listener):
 
     def enterUnannPrimitiveType(self, ctx):
         if isinstance(ctx.children[0], TerminalNodeImpl):
-            self._type.append(TypeNode(ctx.children[0].symbol.text))
+            self._type.append(TypeNode(ctx.children[0].symbol.text, self._typeMapping))
 
     def enterIntegralType(self, ctx):
         if isinstance(ctx.children[0], TerminalNodeImpl):
-            self._type.append(TypeNode(ctx.children[0].symbol.text))
+            self._type.append(TypeNode(ctx.children[0].symbol.text, self._typeMapping))
 
     def enterFloatingPointType(self, ctx):
         if isinstance(ctx.children[0], TerminalNodeImpl):
-            self._type.append(TypeNode(ctx.children[0].symbol.text))
+            self._type.append(TypeNode(ctx.children[0].symbol.text, self._typeMapping))
 
     def enterUnannClassType_lfno_unannClassOrInterfaceType(self, ctx):
         if isinstance(ctx.children[0], TerminalNodeImpl):
-            self._type.append(TypeNode(ctx.children[0].symbol.text))
+            self._type.append(TypeNode(ctx.children[0].symbol.text, self._typeMapping))
 
     def enterClassType_lfno_classOrInterfaceType(self, ctx):
         if isinstance(ctx.children[0], TerminalNodeImpl):
-            self._type.append(TypeNode(ctx.children[0].symbol.text))
+            self._type.append(TypeNode(ctx.children[0].symbol.text, self._typeMapping))
 
     def exitUnannArrayType(self, ctx):
         self._type[-1].setIsArray(True)
@@ -57,7 +58,8 @@ class Listener(Java8Listener.Java8Listener):
         currentMethod = self._currentMethod[-1]
         currentClassName = self._currentClass[-1]
         if isinstance(ctx.children[0], TerminalNodeImpl):
-            self._classInfo[currentClassName]['methods'][currentMethod]["result"] = TypeNode(ctx.children[0].symbol.text)
+            self._classInfo[currentClassName]['methods'][currentMethod]["result"] =\
+                TypeNode(ctx.children[0].symbol.text, self._typeMapping)
         else:
             self._classInfo[currentClassName]['methods'][currentMethod]["result"] = self._type.pop()
 

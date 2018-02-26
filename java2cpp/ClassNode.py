@@ -6,16 +6,26 @@ class ClassNode:
         self._methods = []
         self._classMapping = classMapping
         for n,i in classInfo['methods'].items():
-            self._methods.append(MethodNode(n, i))
+            self._methods.append(MethodNode(n, i, classMapping))
+
+    def _generateMisc(self):
+        return u"#pragma once\n\n"
 
     def _generateHeaderIncludes(self):
-        #TODO
-        return u""
+        includeSet = set()
+        res = u""
+        for m in self._methods:
+            includeSet.update(m.headerIncludes())
+
+        for i in includeSet:
+            res += u"#include " + i + u"\n"
+        return res
 
     def headerString(self):
-        res = self._generateHeaderIncludes()
+        res = self._generateMisc()
+        res += self._generateHeaderIncludes()
 
-        res += u"class " + self._classInfo['name']
+        res += u"\nclass " + self._classInfo['name']
         if 'super' in self._classInfo:
             res += u" : public " + self._classInfo['super'] + u" {\n"
         res += "public:\n"

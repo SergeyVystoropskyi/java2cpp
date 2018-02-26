@@ -11,8 +11,8 @@ class TypeNode:
     def toString(self):
         res = self._type
 
-        if self._type in self._typeMapping.keys():
-            res = self._typeMapping[self._type]
+        if self._type in self._typeMapping["classes"].keys():
+            res = self._typeMapping["classes"][self._type]
 
         if self._templateArgs:
             res = res + u"<" + self._templateArgs[0].toString()
@@ -22,6 +22,20 @@ class TypeNode:
 
         if self._isArray:
             res = u"std::vector<" + res + u">"
+
+        return res
+
+    def getHeaders(self):
+        res = set()
+        if self._isArray:
+            res.add("<vector>")
+
+        if self._type in self._typeMapping["headers"].keys():
+            res.add(self._typeMapping["headers"][self._type])
+
+        if self._templateArgs:
+            for arg in self._templateArgs:
+                res.update(arg.getHeaders())
 
         return res
 

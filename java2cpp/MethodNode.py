@@ -25,5 +25,13 @@ class MethodNode:
         res += u");"
         return res
 
+    def headerIncludes(self):
+        res = self._methodInfo['result'].getHeaders()
+
+        for t in self._methodInfo['paramsType']:
+            res.update(t.getHeaders())
+
+        return res
+
     def bodyAndSignature(self):
         pass
