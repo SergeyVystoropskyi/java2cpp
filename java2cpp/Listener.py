@@ -84,7 +84,7 @@ class Listener(Java8Listener.Java8Listener):
 
         className = self._currentClass[-1]
         self._currentMethod.append(name)
-        self._classInfo[className]['methods'][name] = {}
+        self._classInfo[className]['methods'][name] = {'params':[], 'paramsType':[], 'modifiers': []}
 
     def exitMethodDeclaration(self, ctx):
         self._currentMethod.pop()
@@ -92,19 +92,14 @@ class Listener(Java8Listener.Java8Listener):
     def enterMethodModifier(self, ctx):
         currentMethod = self._currentMethod[-1]
         currentClassName = self._currentClass[-1]
-        if 'modifiers' not in self._classInfo[currentClassName]['methods'][currentMethod]:
-            self._classInfo[currentClassName]['methods'][currentMethod]['modifiers'] = []
         self._classInfo[currentClassName]['methods'][currentMethod]['modifiers'].append(ctx.children[0].symbol.text)
 
     def enterVariableDeclaratorId(self, ctx):
         currentMethod = self._currentMethod[-1]
         currentClassName = self._currentClass[-1]
 
-        if 'params' not in self._classInfo[currentClassName]['methods'][currentMethod]:
-            self._classInfo[currentClassName]['methods'][currentMethod]['params'] = []
-
-        if 'paramsType' not in self._classInfo[currentClassName]['methods'][currentMethod]:
-            self._classInfo[currentClassName]['methods'][currentMethod]['paramsType'] = []
-
         self._classInfo[currentClassName]['methods'][currentMethod]['paramsType'].append(self._type.pop())
         self._classInfo[currentClassName]['methods'][currentMethod]['params'].append(ctx.children[0].symbol.text)
+
+    def getClassInfo(self):
+        return self._classInfo

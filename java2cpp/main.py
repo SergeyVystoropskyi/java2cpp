@@ -5,7 +5,25 @@ from antlr4 import *
 from Java8Lexer import Java8Lexer
 from Java8Parser import Java8Parser
 from Listener import Listener
+from ClassNode import ClassNode
 
+from contextlib import closing
+
+def generateFile(classInfo, dstPath, override):
+    assert len(classInfo.keys()) == 1, "Only one class is currently supported"
+    className = classInfo[classInfo.keys()[0]]['name']
+    cNode = ClassNode(classInfo[classInfo.keys()[0]])
+    headerPath = os.path.join(dstPath, className + ".h")
+    cppPath = os.path.join(dstPath, className + ".cpp")
+    if not os.path.isfile(headerPath) or override:
+        header = cNode.headerString()
+        with closing(open(headerPath, "w")) as f:
+            f.write(header)
+
+    if not os.path.isfile(cppPath) or override:
+        cpp = cNode.cppString()
+        with closing(open(cppPath, "w")) as f:
+            f.write(cpp)
 
 def ProcessFile(srcPath, dstPath, override):
     lexer = Java8Lexer(FileStream(srcPath))
@@ -15,8 +33,7 @@ def ProcessFile(srcPath, dstPath, override):
     listener = Listener()
     walker = ParseTreeWalker()
     walker.walk(listener, tree)
-    #TODO: generate
-    print "done"
+    generateFile(listener.getClassInfo(), dstPath, override)
 
 def ProcessDirectory(srcPath, dstPath, override):
     for path, subdirs, files in os.walk(srcPath):
@@ -42,7 +59,6 @@ def main():
     args = parser.parse_args()
 
     ProcessFiles(args.input, args.output, args.force)
-
 
 if __name__ == '__main__':
     main()
