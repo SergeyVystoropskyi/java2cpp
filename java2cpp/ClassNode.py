@@ -6,7 +6,7 @@ class ClassNode:
         self._methods = []
         self._classMapping = classMapping
         for n,i in classInfo['methods'].items():
-            self._methods.append(MethodNode(n, i, classMapping))
+            self._methods.append(MethodNode(n, i, self._classInfo['name'], classMapping))
 
     def _generateMisc(self):
         return u"#pragma once\n\n"
@@ -42,6 +42,19 @@ class ClassNode:
 
         return res
 
-    def cppString(self):
+    def _includeCorrespondingHeader(self):
+        return u"#include \"" + self._classInfo['name'] + ".h\""
+
+    def _generateDefaultConstructorBody(self):
         #TODO
-        return u""
+        return self._classInfo['name'] + u"::" + self._classInfo['name'] + u"(bool derrivedInstance=false) {}"
+
+    def cppString(self):
+        res = self._includeCorrespondingHeader() + u"\n\n"
+        res += self._generateDefaultConstructorBody() + u"\n\n"
+
+        for m in self._methods:
+            if m.isPublic():
+                res += m.bodyAndSignature() + u"\n\n"
+
+        return res

@@ -1,7 +1,8 @@
 class MethodNode:
-    def __init__(self, name, methodInfo, classMapping=None):
+    def __init__(self, name, methodInfo, className, classMapping=None):
         self._name = name
         self._methodInfo = methodInfo
+        self._className = className
         self._classMapping = classMapping
 
     def isPublic(self):
@@ -34,4 +35,19 @@ class MethodNode:
         return res
 
     def bodyAndSignature(self):
-        pass
+        res = self._methodInfo['result'].toString()
+        res += u" " + self._className + u"::" + self._name + u"("
+
+        assert len(self._methodInfo['params']) == len(self._methodInfo['paramsType'])
+
+        for i in range(len(self._methodInfo['params'])):
+            res += self._methodInfo['paramsType'][i].toString() + u" " + self._methodInfo['params'][i]
+            if i < len(self._methodInfo['params']) - 1:
+                res += u", "
+
+        res += u") {\n"
+
+        #TODO: generate method body
+
+        res += "}"
+        return res
