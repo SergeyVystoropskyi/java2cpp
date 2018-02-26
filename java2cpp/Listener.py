@@ -10,6 +10,16 @@ class Listener(Java8Listener.Java8Listener):
         self._currentMethod = []
         self._type = []
 
+    def enterSuperclass(self, ctx):
+        currentClassName = self._currentClass[-1]
+        parent = ctx.children[1].children[0].symbol.text
+        self._classInfo[currentClassName]["super"] = parent
+
+    def enterSuperinterfaces(self, ctx):
+        currentClassName = self._currentClass[-1]
+        parent = ctx.children[1].children[0].children[0].children[0].symbol.text
+        self._classInfo[currentClassName]["super"] = parent
+
     def enterUnannPrimitiveType(self, ctx):
         if isinstance(ctx.children[0], TerminalNodeImpl):
             self._type.append(TypeNode(ctx.children[0].symbol.text))
@@ -52,13 +62,14 @@ class Listener(Java8Listener.Java8Listener):
             self._classInfo[currentClassName]['methods'][currentMethod]["result"] = self._type.pop()
 
     def enterNormalClassDeclaration(self, ctx):
-        CLASS_NAME_IDX = len(ctx.children) - 2
-
-        self._classInfo[ctx.children[CLASS_NAME_IDX].symbol.text] = \
-            { 'name' : ctx.children[CLASS_NAME_IDX].symbol.text,
-              'methods' : {}}
-
-        self._currentClass.append(ctx.children[CLASS_NAME_IDX].symbol.text)
+        for i in reversed(ctx.children):
+            if isinstance(i, TerminalNodeImpl):
+                name = i.symbol.text
+                self._classInfo[name] = \
+                    {'name' : name,
+                     'methods' : {}}
+                self._currentClass.append(name)
+                break
 
     def exitNormalClassDeclaration(self, ctx):
         self._currentClass.pop()
