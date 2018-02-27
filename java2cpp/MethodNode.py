@@ -5,6 +5,9 @@ class MethodNode:
         self._className = className
         self._classMapping = classMapping
 
+    def getJNIName(self):
+        return u"j" + self._name + "_"
+
     def isPublic(self):
         return "public" in self._methodInfo['modifiers']
 

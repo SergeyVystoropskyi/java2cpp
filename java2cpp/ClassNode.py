@@ -19,6 +19,8 @@ class ClassNode:
 
         for i in includeSet:
             res += u"#include " + i + u"\n"
+
+        res += u"#include <jni.h>\n"
         return res
 
     def _generateDefaultConstructorDefinition(self):
@@ -31,26 +33,55 @@ class ClassNode:
         res += u"\nclass " + self._classInfo['name']
         if 'super' in self._classInfo:
             res += u" : public " + self._classInfo['super'] + u" {\n"
-        res += "public:\n"
+        res += u"public:\n"
         res += self._generateDefaultConstructorDefinition() + u"\n"
 
         for m in self._methods:
             if m.isPublic():
                 res += u"    " + m.signature() + u"\n"
 
+        res += u"\nprotected:\n"
+
+        res += u"    static jclass jthis_;\n"
+        for m in self._methods:
+            if m.isPublic():
+                res += u"    static jmethodID " + m.getJNIName() + u";\n"
+
+        res += u"\nprotected:\n"
+        res += "    static void jInit(bool shouldRun);\n"
         res += u"};"
 
         return res
 
-    def _includeCorrespondingHeader(self):
-        return u"#include \"" + self._classInfo['name'] + ".h\""
+    def _includeCPP(self):
+        res = u"#include \"" + self._classInfo['name'] + ".h\""
+        return res
 
     def _generateDefaultConstructorBody(self):
         #TODO
-        return self._classInfo['name'] + u"::" + self._classInfo['name'] + u"(bool derrivedInstance=false) {}"
+        res = self._classInfo['name'] + u"::" + self._classInfo['name'] + u"(bool derrivedInstance=false) {"
+
+
+        res += u"}"
+        return res
+
+    def _generateStaticInits(self):
+        res = u"jclass* " + self._classInfo['name'] + u"::jthis_ = nullptr;\n"
+        for m in self._methods:
+            if m.isPublic():
+                res += u"jmethodID " + self._classInfo['name'] + u"::" + m.getJNIName() + u" = nullptr;\n"
+        return res + u"\n"
+
+
+    def _generateJInit(self):
+        res = u"void " + self._classInfo["name"] + u"::jInit(bool shouldRun) {"
+        res += u"}\n"
+        return res
 
     def cppString(self):
-        res = self._includeCorrespondingHeader() + u"\n\n"
+        res = self._includeCPP() + u"\n\n"
+        res += self._generateStaticInits()
+        res += self._generateJInit()
         res += self._generateDefaultConstructorBody() + u"\n\n"
 
         for m in self._methods:
