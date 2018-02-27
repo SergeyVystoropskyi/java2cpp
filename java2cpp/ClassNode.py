@@ -72,9 +72,17 @@ class ClassNode:
                 res += u"jmethodID " + self._classInfo['name'] + u"::" + m.getJNIName() + u" = nullptr;\n"
         return res + u"\n"
 
+    def _jCheckForNull(self, varName, intend=4):
+        intendStr = u" " * intend
+        res = intendStr + "if (" + varName + u" == nullprt) {\n"
+        res += intendStr + intendStr + u"throw std::runtime_error(\"" + varName + " should not be null\");\n"
+        res += intendStr + u"}\n"
+        return res
 
     def _generateJInit(self):
-        res = u"void " + self._classInfo["name"] + u"::jInit(bool shouldRun) {"
+        res = u"void " + self._classInfo["name"] + u"::jInit(bool shouldRun) {\n"
+        res += u"    jthis_ = JNISingleton::env()->FindClass(\"" +self._classInfo["name"] + u"\");\n"
+        res += self._jCheckForNull("jthis_")
         res += u"}\n"
         return res
 
