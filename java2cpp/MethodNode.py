@@ -53,7 +53,13 @@ class MethodNode:
 
         res += u") {\n"
 
-        res += u"    JNISingleton::env()->" + self.getJNIMethodCaller() + u"("
+        if not self._methodInfo['result'].isVoid():
+            res += u"    " + self._methodInfo['result'].toCPPJType()
+            res += " jres = "
+        else:
+            res += u"    "
+
+        res += u"JNISingleton::env()->" + self.getJNIMethodCaller() + u"("
         if self.isStatic():
             res += u"jclass_"
         else:

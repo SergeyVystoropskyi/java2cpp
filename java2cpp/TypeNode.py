@@ -51,6 +51,20 @@ class TypeNode:
     def isSimpleType(self):
         return self._type in ["boolean", "byte", "char", "short", "int", "long", "float", "double"]
 
+    def toCPPJType(self):
+        assert not self.isVoid()
+        if self.isSimpleType():
+            tr = {"boolean":"jboolean",
+                  "byte":"jbyte",
+                  "char":"jchar",
+                  "short":"jshort",
+                  "int":"jint",
+                  "long":"jlong",
+                  "float":"jfloat",
+                  "double":"jdouble"}
+            return tr[self._type]
+        return "jobject"
+
     def isVoid(self):
         return self._type == "void"
 
