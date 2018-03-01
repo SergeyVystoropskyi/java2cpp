@@ -53,3 +53,16 @@ class TypeNode:
 
     def isVoid(self):
         return self._type == "void"
+
+    def typeJNISignature(self):
+        res = ""
+
+        if self._isArray:
+            res += u"["
+
+        if self._type in self._typeMapping['jni']:
+            res += self._typeMapping['jni'][self._type]
+        else:
+            res += self._type
+
+        return res

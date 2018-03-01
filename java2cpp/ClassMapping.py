@@ -14,6 +14,7 @@ typeMapping = {
         "Float" : "float"
     },
     "jni" : {
+      "void" : "V",
       "boolean" : "Z",
       "byte" : "B",
       "char" : "C",

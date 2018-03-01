@@ -77,7 +77,7 @@ class ClassNode:
 
     def _jCheckForNull(self, varName, intend=4):
         intendStr = u" " * intend
-        res = intendStr + "if (" + varName + u" == nullprt) {\n"
+        res = intendStr + u"if (" + varName + u" == nullprt) {\n"
         res += intendStr + intendStr + u"throw std::runtime_error(\"" + varName + " should not be null\");\n"
         res += intendStr + u"}\n"
         return res
@@ -88,6 +88,9 @@ class ClassNode:
         res += self._jCheckForNull("jclass_")
         res += u"    jctor_ = JNISingleton::env()->env->GetMethodID(jclass_, \"<init>\", \"()V\");\n"
         res += self._jCheckForNull("jctor_")
+        for m in self._methods:
+            res+= m.getJNIMethodFindLine()
+            res += self._jCheckForNull(m.getJNIName())
         res += u"}\n"
         return res
 

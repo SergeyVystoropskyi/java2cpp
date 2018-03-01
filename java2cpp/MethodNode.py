@@ -62,4 +62,17 @@ class MethodNode:
             return "GetMethodID"
 
     def getJNIMethodSignature(self):
-        return u""
+        res = u"("
+        for arg in self._methodInfo["paramsType"]:
+            res+= arg.typeJNISignature() + u";"
+        res += u")"
+        res += self._methodInfo["result"].typeJNISignature()
+        return res
+
+    def getJNIMethodFindLine(self, intend=4):
+        res = u" " * intend
+        res += self.getJNIName() + u" = JNISingleton::env()->"
+        res += self.getJNIMethodFindFunction() + u"("
+        res += u"jclass_, \"" + self._name + u"\", "
+        res += u"\"" + self.getJNIMethodSignature() + u"\");\n"
+        return res
