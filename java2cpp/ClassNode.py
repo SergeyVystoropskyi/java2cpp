@@ -41,8 +41,10 @@ class ClassNode:
                 res += u"    " + m.signature() + u"\n"
 
         res += u"\nprotected:\n"
+        res += u"    jobject jthis_;\n"
 
-        res += u"    static jclass jthis_;\n"
+        res += u"    static jclass jclass_;\n"
+        res += u"    static jmethodID jctor_;\n"
         for m in self._methods:
             if m.isPublic():
                 res += u"    static jmethodID " + m.getJNIName() + u";\n"
@@ -66,7 +68,8 @@ class ClassNode:
         return res
 
     def _generateStaticInits(self):
-        res = u"jclass* " + self._classInfo['name'] + u"::jthis_ = nullptr;\n"
+        res = u"jclass " + self._classInfo['name'] + u"::jclass_ = nullptr;\n"
+        res += u"jmethodID " + self._classInfo['name'] + u"::jctor_ = nullptr;\n"
         for m in self._methods:
             if m.isPublic():
                 res += u"jmethodID " + self._classInfo['name'] + u"::" + m.getJNIName() + u" = nullptr;\n"
@@ -81,8 +84,10 @@ class ClassNode:
 
     def _generateJInit(self):
         res = u"void " + self._classInfo["name"] + u"::jInit(bool shouldRun) {\n"
-        res += u"    jthis_ = JNISingleton::env()->FindClass(\"" +self._classInfo["name"] + u"\");\n"
-        res += self._jCheckForNull("jthis_")
+        res += u"    jclass_ = JNISingleton::env()->FindClass(\"" + self._classInfo["name"] + u"\");\n"
+        res += self._jCheckForNull("jclass_")
+        res += u"    jctor_ = JNISingleton::env()->env->GetMethodID(jclass_, \"<init>\", \"()V\");\n"
+        res += self._jCheckForNull("jctor_")
         res += u"}\n"
         return res
 

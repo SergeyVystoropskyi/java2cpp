@@ -52,5 +52,14 @@ class MethodNode:
 
         #TODO: generate method body
 
-        res += "}"
+        res += u"}"
         return res
+
+    def getJNIMethodFindFunction(self):
+        if "static" in  self._methodInfo['modifiers']:
+            return "GetStaticMethodID"
+        else:
+            return "GetMethodID"
+
+    def getJNIMethodSignature(self):
+        return u""

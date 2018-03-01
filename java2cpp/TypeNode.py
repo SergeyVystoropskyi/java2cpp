@@ -47,3 +47,9 @@ class TypeNode:
 
     def setIsArray(self, isArray):
         self._isArray = isArray
+
+    def isSimpleType(self):
+        return self._type in ["boolean", "byte", "char", "short", "int", "long", "float", "double"]
+
+    def isVoid(self):
+        return self._type == "void"
