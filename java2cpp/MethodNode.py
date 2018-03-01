@@ -11,10 +11,13 @@ class MethodNode:
     def isPublic(self):
         return "public" in self._methodInfo['modifiers']
 
+    def isStatic(self):
+        return "static" in self._methodInfo['modifiers']
+
     def signature(self):
         res = self._methodInfo['result'].toString()
 
-        if "static" in self._methodInfo['modifiers']:
+        if self.isStatic():
             res = u"static " + res
 
         res += u" " + self._name + u"("
@@ -50,8 +53,17 @@ class MethodNode:
 
         res += u") {\n"
 
-        #TODO: generate method body
+        res += u"    JNISingleton::env()->" + self.getJNIMethodCaller() + u"("
+        if self.isStatic():
+            res += u"jclass_"
+        else:
+            res += u"jthis_"
 
+
+        for a in self._methodInfo['params']:
+            res += ', ' + a
+
+        res += u");\n"
         res += u"}"
         return res
 
@@ -75,4 +87,15 @@ class MethodNode:
         res += self.getJNIMethodFindFunction() + u"("
         res += u"jclass_, \"" + self._name + u"\", "
         res += u"\"" + self.getJNIMethodSignature() + u"\");\n"
+        return res
+
+    def getJNIMethodCaller(self):
+        res = u"Call"
+
+        if self.isStatic():
+            res += u"Static"
+
+        res += self._methodInfo['result'].getJNIMethodReturnType()
+        res += u"Call"
+
         return res

@@ -50,7 +50,7 @@ class ClassNode:
                 res += u"    static jmethodID " + m.getJNIName() + u";\n"
 
         res += u"\nprotected:\n"
-        res += "    static void jInit(bool shouldRun);\n"
+        res += "    static void jInit();\n"
         res += u"};"
 
         return res
@@ -60,9 +60,16 @@ class ClassNode:
         return res
 
     def _generateDefaultConstructorBody(self):
-        #TODO
-        res = self._classInfo['name'] + u"::" + self._classInfo['name'] + u"(bool derrivedInstance=false) {"
-
+        res = self._classInfo['name'] + u"::" + self._classInfo['name'] + u"(bool derrivedInstance=false)"
+        if "super" in self._classInfo:
+            res += u" : " + self._classInfo["super"] + "(true) "
+        res += "{\n"
+        res += u"    if (jclass_ == nullptr) {\n"
+        res += u"        jInit();\n"
+        res += u"    }\n"
+        res += u"    if (derrivedInstance) return;\n"
+        res += u"    jthis_ = JNISingleton::env()->NewObject(jclass_, jctor_);\n"
+        res += self._jCheckForNull("jthis_")
 
         res += u"}"
         return res
@@ -83,10 +90,10 @@ class ClassNode:
         return res
 
     def _generateJInit(self):
-        res = u"void " + self._classInfo["name"] + u"::jInit(bool shouldRun) {\n"
+        res = u"void " + self._classInfo["name"] + u"::jInit() {\n"
         res += u"    jclass_ = JNISingleton::env()->FindClass(\"" + self._classInfo["name"] + u"\");\n"
         res += self._jCheckForNull("jclass_")
-        res += u"    jctor_ = JNISingleton::env()->env->GetMethodID(jclass_, \"<init>\", \"()V\");\n"
+        res += u"    jctor_ = JNISingleton::env()->GetMethodID(jclass_, \"<init>\", \"()V\");\n"
         res += self._jCheckForNull("jctor_")
         for m in self._methods:
             res+= m.getJNIMethodFindLine()

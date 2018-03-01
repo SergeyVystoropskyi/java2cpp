@@ -54,6 +54,14 @@ class TypeNode:
     def isVoid(self):
         return self._type == "void"
 
+    def getJNIMethodReturnType(self):
+        if self._isArray:
+            return "Object"
+        if self.isVoid() or self.isSimpleType():
+            return self._type.title()
+
+        return "Object"
+
     def typeJNISignature(self):
         res = ""
 
