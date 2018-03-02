@@ -88,3 +88,26 @@ class TypeNode:
             res += self._type
 
         return res
+
+    def typeUnpack(self, jVarName, intend=4):
+        assert not self.isVoid()
+        intendStr = u" " * intend
+        if self.isSimpleType():
+            tr = {"boolean":"jboolean",
+                  "byte":"jbyte",
+                  "char":"jchar",
+                  "short":"jshort",
+                  "int":"jint",
+                  "long":"jlong",
+                  "float":"jfloat",
+                  "double":"jdouble"}
+            rev_tr = {v:k for k,v in tr.items()}
+            return intendStr + u"return (" + rev_tr[tr[self._type]] + u")" + jVarName + u";\n"
+
+        if self._type == "String":
+            res = intendStr + u"jstring tmpres = (jstring)" + jVarName + ";\n"
+            res += intendStr + u"jboolean isCopy = 0x01;\n"
+            res += intendStr + u"return std::string((char*)GetStringChars(tmpres, &isCopy));\n"
+            return res
+
+        return u"THIS SHOULD NOT COMPILE AS TYPE IS UNKNOWN\n"

@@ -40,6 +40,9 @@ class MethodNode:
 
         return res
 
+    def isVoid(self):
+        return self._methodInfo['result'].isVoid()
+
     def bodyAndSignature(self):
         res = self._methodInfo['result'].toString()
         res += u" " + self._className + u"::" + self._name + u"("
@@ -53,7 +56,7 @@ class MethodNode:
 
         res += u") {\n"
 
-        if not self._methodInfo['result'].isVoid():
+        if not self.isVoid():
             res += u"    " + self._methodInfo['result'].toCPPJType()
             res += " jres = "
         else:
@@ -70,6 +73,8 @@ class MethodNode:
             res += ', ' + a
 
         res += u");\n"
+        if not self.isVoid():
+            res += self.getJNIUnpackResult()
         res += u"}"
         return res
 
@@ -94,6 +99,9 @@ class MethodNode:
         res += u"jclass_, \"" + self._name + u"\", "
         res += u"\"" + self.getJNIMethodSignature() + u"\");\n"
         return res
+
+    def getJNIUnpackResult(self, intend=4):
+        return self._methodInfo['result'].typeUnpack(u"jres")
 
     def getJNIMethodCaller(self):
         res = u"Call"
