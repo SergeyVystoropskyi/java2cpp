@@ -121,6 +121,28 @@ class TypeNode:
 
         return res
 
+    def _getArraySetFunction(self):
+        tr = {"Boolean":"SetBooleanArrayRegion",
+                "Byte":"SetByteArrayRegion",
+                "Char":"SetCharArrayRegion",
+                "Short":"SetShortArrayRegion",
+                "Integer":"SetIntArrayRegion",
+                "Long":"SetLongArrayRegion",
+                "Float":"SetFloatArrayRegion",
+                "Double":"SetDoubleArrayRegion",
+                "boolean":"SetBooleanArrayRegion",
+                "byte":"SetByteArrayRegion",
+                "char":"SetCharArrayRegion",
+                "short":"SetShortArrayRegion",
+                "int":"SetIntArrayRegion",
+                "long":"SetLongArrayRegion",
+                "float":"SetFloatArrayRegion",
+                "double":"SetDoubleArrayRegion"}
+
+        if self._type in tr.keys():
+            return tr[self._type]
+        return "SetObjectArrayElement"
+
     def _getArrayCreateJNIFunction(self):
         tr = {
         "boolean":"NewBooleanArray",
@@ -160,8 +182,10 @@ class TypeNode:
             res += loopIntend + self.toCPPJType(True) + u" jtmpArrayFillerJava" + str(depth) + u";\n"
             res += self.typePack(jVarName=u"jtmpArrayFillerJava" + str(depth), varName=u"jtmpArrayFillerCpp" + str(depth),
                                  intend=intend+4, depth=depth+1, skipAray=True)
-            res += loopIntend + u"JNISingleton::env()->SetObjectArrayElement(" + jVarName + u", i, jtmpArrayFillerJava" \
-                   + str(depth) + u");\n"
+            res += loopIntend + u"JNISingleton::env()->" + self._getArraySetFunction() + u"(" + jVarName + u", i, "
+            if not(self._getArraySetFunction() == "SetObjectArrayElement"):
+                res += u" 1, &"
+            res += u"jtmpArrayFillerJava" + str(depth) + u");\n"
             res += intendStr + u"}"
             return res
 
