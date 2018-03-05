@@ -10,44 +10,71 @@ class Listener(Java8Listener.Java8Listener):
         self._currentMethod = []
         self._type = []
         self._typeMapping = typeMapping
+        self._mute = False
+
+    def enterMethodBody(self, ctx):
+        self._mute = True
+
+    def exitMethodBody(self, ctx):
+        self._mute = False
 
     def enterSuperclass(self, ctx):
+        if self._mute:
+            return
         currentClassName = self._currentClass[-1]
         parent = ctx.children[1].children[0].symbol.text
         self._classInfo[currentClassName]["super"] = parent
 
     def enterSuperinterfaces(self, ctx):
+        if self._mute:
+            return
         currentClassName = self._currentClass[-1]
         parent = ctx.children[1].children[0].children[0].children[0].symbol.text
         self._classInfo[currentClassName]["super"] = parent
 
     def enterUnannPrimitiveType(self, ctx):
+        if self._mute:
+            return
         if isinstance(ctx.children[0], TerminalNodeImpl):
             self._type.append(TypeNode(ctx.children[0].symbol.text, self._typeMapping))
 
     def enterIntegralType(self, ctx):
+        if self._mute:
+            return
         if isinstance(ctx.children[0], TerminalNodeImpl):
             self._type.append(TypeNode(ctx.children[0].symbol.text, self._typeMapping))
 
     def enterFloatingPointType(self, ctx):
+        if self._mute:
+            return
         if isinstance(ctx.children[0], TerminalNodeImpl):
             self._type.append(TypeNode(ctx.children[0].symbol.text, self._typeMapping))
 
     def enterUnannClassType_lfno_unannClassOrInterfaceType(self, ctx):
+        if self._mute:
+            return
         if isinstance(ctx.children[0], TerminalNodeImpl):
             self._type.append(TypeNode(ctx.children[0].symbol.text, self._typeMapping))
 
     def enterClassType_lfno_classOrInterfaceType(self, ctx):
+        if self._mute:
+            return
         if isinstance(ctx.children[0], TerminalNodeImpl):
             self._type.append(TypeNode(ctx.children[0].symbol.text, self._typeMapping))
 
     def exitUnannArrayType(self, ctx):
+        if self._mute:
+            return
         self._type[-1].setIsArray(True)
 
     def exitArrayType(self, ctx):
+        if self._mute:
+            return
         self._type[-1].setIsArray(True)
 
     def exitTypeArgumentList(self, ctx):
+        if self._mute:
+            return
         toPop = (len(ctx.children) + 1) / 2
         popIndex = len(self._type) - toPop
         typeArgs = self._type[popIndex:]
@@ -55,6 +82,8 @@ class Listener(Java8Listener.Java8Listener):
         self._type[-1].addTeplateArgs(typeArgs)
 
     def exitResult(self, ctx):
+        if self._mute:
+            return
         currentMethod = self._currentMethod[-1]
         currentClassName = self._currentClass[-1]
         if isinstance(ctx.children[0], TerminalNodeImpl):
@@ -64,6 +93,8 @@ class Listener(Java8Listener.Java8Listener):
             self._classInfo[currentClassName]['methods'][currentMethod]["result"] = self._type.pop()
 
     def enterNormalClassDeclaration(self, ctx):
+        if self._mute:
+            return
         for i in reversed(ctx.children):
             if isinstance(i, TerminalNodeImpl):
                 name = i.symbol.text
@@ -74,9 +105,13 @@ class Listener(Java8Listener.Java8Listener):
                 break
 
     def exitNormalClassDeclaration(self, ctx):
+        if self._mute:
+            return
         self._currentClass.pop()
 
     def enterMethodDeclaration(self, ctx):
+        if self._mute:
+            return
         name = None
         for c in ctx.children:
             if isinstance(c, Java8Parser.MethodHeaderContext):
@@ -89,14 +124,20 @@ class Listener(Java8Listener.Java8Listener):
         self._classInfo[className]['methods'][name] = {'params':[], 'paramsType':[], 'modifiers': []}
 
     def exitMethodDeclaration(self, ctx):
+        if self._mute:
+            return
         self._currentMethod.pop()
 
     def enterMethodModifier(self, ctx):
+        if self._mute:
+            return
         currentMethod = self._currentMethod[-1]
         currentClassName = self._currentClass[-1]
         self._classInfo[currentClassName]['methods'][currentMethod]['modifiers'].append(ctx.children[0].symbol.text)
 
     def enterVariableDeclaratorId(self, ctx):
+        if self._mute:
+            return
         currentMethod = self._currentMethod[-1]
         currentClassName = self._currentClass[-1]
 
@@ -104,4 +145,6 @@ class Listener(Java8Listener.Java8Listener):
         self._classInfo[currentClassName]['methods'][currentMethod]['params'].append(ctx.children[0].symbol.text)
 
     def getClassInfo(self):
+        if self._mute:
+            return
         return self._classInfo
