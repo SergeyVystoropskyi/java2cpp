@@ -9,8 +9,11 @@ typeMapping = {
         "Map" : "std::map",
         "List" : "std::vector",
         "boolean" : "bool",
+        "Boolean" : "bool",
         "Double" : "double",
+        "double" : "double",
         "Integer" : "int",
+        "int" : "int",
         "Float" : "float"
     },
     "jni" : {

@@ -56,6 +56,8 @@ class MethodNode:
 
         res += u") {\n"
 
+        res += self.getJNIPackArgs()
+
         if not self.isVoid():
             res += u"    " + self._methodInfo['result'].toCPPJType()
             res += " jres = "
@@ -70,7 +72,7 @@ class MethodNode:
 
 
         for a in self._methodInfo['params']:
-            res += ', ' + a
+            res += ', ' + self.argToJ(a)
 
         res += u");\n"
         if not self.isVoid():
@@ -101,7 +103,28 @@ class MethodNode:
         return res
 
     def getJNIUnpackResult(self, intend=4):
-        return self._methodInfo['result'].typeUnpack(u"jres")
+        res = u" " * intend + self._methodInfo['result'].toString() + u" res;\n"
+        res += self._methodInfo['result'].typeUnpack(u"jres", "res")
+        res += u" " * intend + u"return res;\n"
+        return res
+
+    def argToJ(self, argName):
+        return u"j" + argName
+
+    def getJNIPackArgs(self, intend=4):
+        res = u""
+        intendStr = u" " * intend
+        for i in range(len(self._methodInfo["paramsType"])):
+            res += intendStr + self._methodInfo["paramsType"][i].toCPPJType() + u" "
+            res += intendStr + self.argToJ(self._methodInfo["params"][i]) + u";\n"
+            res +=  self._methodInfo["paramsType"][i].typePack(self.argToJ(self._methodInfo["params"][i]),
+                                                              self._methodInfo["params"][i])
+            res += u"\n"
+
+        if self._methodInfo["paramsType"]:
+            res += u"\n"
+
+        return res
 
     def getJNIMethodCaller(self):
         res = u"Call"
