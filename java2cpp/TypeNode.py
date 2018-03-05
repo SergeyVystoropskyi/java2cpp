@@ -8,7 +8,7 @@ class TypeNode:
         self._templateArgs = templateArgs
         self._isArray = isArray
 
-    def toString(self):
+    def toString(self, skipArray=False):
         res = self._type
 
         if self._type in self._typeMapping["classes"].keys():
@@ -20,7 +20,7 @@ class TypeNode:
                 res = res + ", " + arg.toString()
             res = res + u">"
 
-        if self._isArray:
+        if not skipArray and self._isArray:
             res = u"std::vector<" + res + u">"
 
         return res
@@ -52,8 +52,29 @@ class TypeNode:
         return self._type in ["boolean", "byte", "char", "short", "int", "long", "float", "double",
                               "Boolean", "Byte", "Char", "Short", "Integer", "Long", "Float", "Double"]
 
-    def toCPPJType(self):
+    def toCPPJType(self, skipArray=False):
         assert not self.isVoid()
+        if not skipArray and self._isArray:
+            if self.isSimpleType():
+                tr = {"boolean": "jboolean",
+                      "Boolean": "jboolean",
+                      "byte": "jbyte",
+                      "Byte": "jbyte",
+                      "char": "jchar",
+                      "Char": "jchar",
+                      "short": "jshort",
+                      "Short": "jshort",
+                      "int": "jint",
+                      "Integer": "jint",
+                      "long": "jlong",
+                      "Long": "jlong",
+                      "float": "jfloat",
+                      "Float": "jfloat",
+                      "double": "jdouble",
+                      "Double": "jdouble"}
+                return tr[self._type] + u"Array"
+            return "jobjectArray"
+
         if self.isSimpleType():
             tr = {"boolean":"jboolean",
                   "Boolean": "jboolean",
@@ -87,10 +108,10 @@ class TypeNode:
 
         return "Object"
 
-    def typeJNISignature(self):
+    def typeJNISignature(self, skipArray=False):
         res = ""
 
-        if self._isArray:
+        if not skipArray and self._isArray:
             res += u"["
 
         if self._type in self._typeMapping['jni']:
@@ -101,14 +122,24 @@ class TypeNode:
         return res
 
 
-    def typePack(self, jVarName, varName, intend=4, depth=0):
+    def typePack(self, jVarName, varName, intend=4, depth=0, skipAray=False):
         assert not self.isVoid()
 
         intendStr = u" " * intend
         loopIntend = u" " * 4 + intendStr
 
-        if self._isArray:
-            pass
+        if not skipAray and self._isArray:
+            res = intendStr + jVarName + u" = JNISingleton::env()->NewObjectArray(" + varName + u".size(), " + \
+                  u"JNISingleton::env()->FindClass(\"" + self.typeJNISignature(True) + u"\"), nullptr);\n"
+            res += intendStr + u"for (int i = 0; i < " + varName + u".size(); ++i) {\n"
+            res += loopIntend + self.toString(True) + u" jtmpArrayFillerCpp" + str(depth) + u" = " + varName + u"[i];\n"
+            res += loopIntend + self.toCPPJType(True) + u" jtmpArrayFillerJava" + str(depth) + u";\n"
+            res += self.typePack(jVarName=u"jtmpArrayFillerJava" + str(depth), varName=u"jtmpArrayFillerCpp" + str(depth),
+                                 intend=intend+4, depth=depth+1, skipAray=True)
+            res += loopIntend + u"JNISingleton::env()->SetObjectArrayElement(" + jVarName + u", i, jtmpArrayFillerJava" \
+                   + str(depth) + u");\n"
+            res += intendStr + u"}"
+            return res
 
         if self.isSimpleType():
             tr = {"boolean":"jboolean",
