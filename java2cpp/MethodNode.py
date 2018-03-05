@@ -90,7 +90,9 @@ class MethodNode:
     def getJNIMethodSignature(self):
         res = u"("
         for arg in self._methodInfo["paramsType"]:
-            res+= arg.typeJNISignature() + u";"
+            res+= arg.typeJNISignature()
+            if not arg.isSimpleType():
+                res += u";"
         res += u")"
         res += self._methodInfo["result"].typeJNISignature()
         return res
