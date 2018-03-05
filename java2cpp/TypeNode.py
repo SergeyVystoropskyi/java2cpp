@@ -25,6 +25,9 @@ class TypeNode:
 
         return res
 
+    def isArray(self):
+        return self._isArray
+
     def getHeaders(self):
         res = set()
         if self._isArray:

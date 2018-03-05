@@ -26,8 +26,8 @@ typeMapping = {
       "long" : "J",
       "float" : "F",
       "double" : "D",
-      "String" : "Ljava/lang/String",
-      "List" : "Ljava/util/List",
-      "Map" : "Ljava/util/Map"
+      "String" : "java/lang/String",
+      "List" : "java/util/List",
+      "Map" : "java/util/Map"
     }
 }
