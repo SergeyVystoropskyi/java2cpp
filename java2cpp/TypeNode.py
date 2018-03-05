@@ -157,7 +157,8 @@ class TypeNode:
                   "float":"jfloat",
                   "Float": "jfloat",
                   "double":"jdouble",
-                  "Double": "jdouble"}
+                  "Double": "jdouble"
+                  }
             return intendStr + jVarName + u" = (" + tr[self._type] + u")" + varName + u";\n"
 
         if self._type == "List":
@@ -199,21 +200,22 @@ class TypeNode:
         intendStr = u" " * intend
         if self.isSimpleType():
             tr = {"boolean":"jboolean",
-                  "Boolean": "jboolean",
+                  #"Boolean": "jboolean",
                   "byte":"jbyte",
-                  "Byte": "jbyte",
+                  #"Byte": "jbyte",
                   "char":"jchar",
-                  "Char": "jchar",
+                  #"Char": "jchar",
                   "short":"jshort",
-                  "Short": "jshort",
+                  #"Short": "jshort",
                   "int":"jint",
-                  "Integer": "jint",
+                  #"Integer": "jint",
                   "long":"jlong",
-                  "Long": "jlong",
+                  #"Long": "jlong",
                   "float":"jfloat",
-                  "Float": "jfloat",
+                  #"Float": "jfloat",
                   "double":"jdouble",
-                  "Double": "jdouble"}
+                  #"Double": "jdouble"
+                   }
             rev_tr = {v:k for k,v in tr.items()}
             return intendStr + varName + u" = (" + rev_tr[tr[self._type]] + u")" + jVarName + u";\n"
 

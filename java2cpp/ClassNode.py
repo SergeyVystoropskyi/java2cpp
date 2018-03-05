@@ -32,7 +32,8 @@ class ClassNode:
 
         res += u"\nclass " + self._classInfo['name']
         if 'super' in self._classInfo:
-            res += u" : public " + self._classInfo['super'] + u" {\n"
+            res += u" : public " + self._classInfo['super']
+        res += u" {\n"
         res += u"public:\n"
         res += self._generateDefaultConstructorDefinition() + u"\n"
 
@@ -56,11 +57,12 @@ class ClassNode:
         return res
 
     def _includeCPP(self):
-        res = u"#include \"" + self._classInfo['name'] + ".h\""
+        res = u"#include \"" + self._classInfo['name'] + ".h\"\n"
+        res += u"#include \"JNISingleton.h\""
         return res
 
     def _generateDefaultConstructorBody(self):
-        res = self._classInfo['name'] + u"::" + self._classInfo['name'] + u"(bool derrivedInstance=false)"
+        res = self._classInfo['name'] + u"::" + self._classInfo['name'] + u"(bool derrivedInstance)"
         if "super" in self._classInfo:
             res += u" : " + self._classInfo["super"] + "(true) "
         res += "{\n"
@@ -84,8 +86,8 @@ class ClassNode:
 
     def _jCheckForNull(self, varName, intend=4):
         intendStr = u" " * intend
-        res = intendStr + u"if (" + varName + u" == nullprt) {\n"
-        res += intendStr + intendStr + u"throw std::runtime_error(\"" + varName + " should not be null\");\n"
+        res = intendStr + u"if (" + varName + u" == nullptr) {\n"
+        res += intendStr + intendStr + u"throw std::runtime_error(\"" + varName + " should not be nullptr\");\n"
         res += intendStr + u"}\n"
         return res
 
@@ -101,8 +103,12 @@ class ClassNode:
         res += u"}\n"
         return res
 
+    def _generateNamespacesUsage(self):
+        return u"using namespace JNIWrappers;\n\n"
+
     def cppString(self):
         res = self._includeCPP() + u"\n\n"
+        res += self._generateNamespacesUsage()
         res += self._generateStaticInits()
         res += self._generateJInit()
         res += self._generateDefaultConstructorBody() + u"\n\n"

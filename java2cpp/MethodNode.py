@@ -66,10 +66,11 @@ class MethodNode:
 
         res += u"JNISingleton::env()->" + self.getJNIMethodCaller() + u"("
         if self.isStatic():
-            res += u"jclass_"
+            res += u"jclass_,"
         else:
-            res += u"jthis_"
+            res += u"jthis_, "
 
+        res += self.getJNIName()
 
         for a in self._methodInfo['params']:
             res += ', ' + self.argToJ(a)
@@ -133,6 +134,6 @@ class MethodNode:
             res += u"Static"
 
         res += self._methodInfo['result'].getJNIMethodReturnType()
-        res += u"Call"
+        res += u"Method"
 
         return res
