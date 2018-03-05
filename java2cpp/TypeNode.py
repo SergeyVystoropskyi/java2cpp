@@ -121,6 +121,28 @@ class TypeNode:
 
         return res
 
+    def _getArrayCreateJNIFunction(self):
+        tr = {
+        "boolean":"NewBooleanArray",
+        "byte":"NewByteArray",
+        "char":"NewCharArray",
+        "short":"NewShortArray",
+        "int":"NewIntArray",
+        "long":"NewLongArray",
+        "float":"NewFloatArray",
+        "double":"NewDoubleArray",
+        "Boolean":"NewBooleanArray",
+        "Byte":"NewByteArray",
+        "Char":"NewCharArray",
+        "Short":"NewShortArray",
+        "Integer":"NewIntArray",
+        "Long":"NewLongArray",
+        "Float":"NewFloatArray",
+        "Double":"NewDoubleArray",
+        }
+        if self._type in tr.keys():
+            return tr[self._type]
+        return "NewObjectArray"
 
     def typePack(self, jVarName, varName, intend=4, depth=0, skipAray=False):
         assert not self.isVoid()
@@ -129,8 +151,10 @@ class TypeNode:
         loopIntend = u" " * 4 + intendStr
 
         if not skipAray and self._isArray:
-            res = intendStr + jVarName + u" = JNISingleton::env()->NewObjectArray(" + varName + u".size(), " + \
-                  u"JNISingleton::env()->FindClass(\"" + self.typeJNISignature(True) + u"\"), nullptr);\n"
+            res = intendStr + jVarName + u" = JNISingleton::env()->" + self._getArrayCreateJNIFunction() + u"(" + varName + u".size()"
+            if self._getArrayCreateJNIFunction() == "NewObjectArray":
+                res += u", JNISingleton::env()->FindClass(\"" + self.typeJNISignature(True) + u"\"), nullptr"
+            res += u");\n"
             res += intendStr + u"for (int i = 0; i < " + varName + u".size(); ++i) {\n"
             res += loopIntend + self.toString(True) + u" jtmpArrayFillerCpp" + str(depth) + u" = " + varName + u"[i];\n"
             res += loopIntend + self.toCPPJType(True) + u" jtmpArrayFillerJava" + str(depth) + u";\n"
