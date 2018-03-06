@@ -64,6 +64,9 @@ class MethodNode:
         else:
             res += u"    "
 
+        if self._methodInfo['result']._type == "String":
+            res += u"(jstring)"
+
         res += u"JNISingleton::env()->" + self.getJNIMethodCaller() + u"("
         if self.isStatic():
             res += u"jclass_,"
@@ -102,7 +105,12 @@ class MethodNode:
             if not isSimpleType:
                 res += u";"
         res += u")"
+        resSimple = self._methodInfo["result"].isSimpleType() or self._methodInfo["result"].isVoid()
+        if not resSimple:
+            res += u"L"
         res += self._methodInfo["result"].typeJNISignature()
+        if not resSimple:
+            res += u";"
         return res
 
     def getJNIMethodFindLine(self, intend=4):

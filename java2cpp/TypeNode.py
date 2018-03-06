@@ -259,7 +259,7 @@ class TypeNode:
         if self._type == "String":
             res = intendStr + u"jstring tmpres" + str(depth) + u" = (jstring)" + jVarName + ";\n"
             res += intendStr + u"jboolean isCopy" + str(depth) + u" = JNI_TRUE;\n"
-            res += intendStr + u"std::string " + varName + u" = std::string((char*)GetStringChars(tmpres, &isCopy));\n"
+            res += intendStr + varName + u" = std::string((char*)JNISingleton::env()->GetStringChars(tmpres" + str(depth) + u", &isCopy" + str(depth) + u"));\n"
             return res
 
         # if self._type == "List":
