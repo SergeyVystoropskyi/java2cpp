@@ -51,50 +51,38 @@ class TypeNode:
     def setIsArray(self, isArray):
         self._isArray = isArray
 
+    def isPackedSimpleType(self):
+        return self._type in ["Boolean", "Byte", "Char", "Short", "Integer", "Long", "Float", "Double"]
+
     def isSimpleType(self):
-        return self._type in ["boolean", "byte", "char", "short", "int", "long", "float", "double",
-                              "Boolean", "Byte", "Char", "Short", "Integer", "Long", "Float", "Double"]
+        return self._type in ["boolean", "byte", "char", "short", "int", "long", "float", "double"]
 
     def toCPPJType(self, skipArray=False):
         assert not self.isVoid()
         if not skipArray and self._isArray:
             if self.isSimpleType():
                 tr = {"boolean": "jboolean",
-                      "Boolean": "jboolean",
                       "byte": "jbyte",
-                      "Byte": "jbyte",
                       "char": "jchar",
-                      "Char": "jchar",
                       "short": "jshort",
-                      "Short": "jshort",
                       "int": "jint",
-                      "Integer": "jint",
                       "long": "jlong",
-                      "Long": "jlong",
                       "float": "jfloat",
-                      "Float": "jfloat",
                       "double": "jdouble",
-                      "Double": "jdouble"}
+                 }
                 return tr[self._type] + u"Array"
             return "jobjectArray"
 
         if self.isSimpleType():
             tr = {"boolean":"jboolean",
-                  "Boolean": "jboolean",
                   "byte":"jbyte",
-                  "Byte": "jbyte",
                   "char":"jchar",
-                  "Char": "jchar",
                   "short":"jshort",
-                  "Short": "jshort",
                   "int":"jint",
-                  "Integer": "jint",
                   "long":"jlong",
-                  "Long": "jlong",
                   "float":"jfloat",
-                  "Float": "jfloat",
                   "double":"jdouble",
-                  "Double": "jdouble"}
+             }
             return tr[self._type]
         if self._type == "String":
             return "jstring"
@@ -125,15 +113,7 @@ class TypeNode:
         return res
 
     def _getArraySetFunction(self):
-        tr = {"Boolean":"SetBooleanArrayRegion",
-                "Byte":"SetByteArrayRegion",
-                "Char":"SetCharArrayRegion",
-                "Short":"SetShortArrayRegion",
-                "Integer":"SetIntArrayRegion",
-                "Long":"SetLongArrayRegion",
-                "Float":"SetFloatArrayRegion",
-                "Double":"SetDoubleArrayRegion",
-                "boolean":"SetBooleanArrayRegion",
+        tr = {"boolean":"SetBooleanArrayRegion",
                 "byte":"SetByteArrayRegion",
                 "char":"SetCharArrayRegion",
                 "short":"SetShortArrayRegion",
@@ -156,14 +136,6 @@ class TypeNode:
         "long":"NewLongArray",
         "float":"NewFloatArray",
         "double":"NewDoubleArray",
-        "Boolean":"NewBooleanArray",
-        "Byte":"NewByteArray",
-        "Char":"NewCharArray",
-        "Short":"NewShortArray",
-        "Integer":"NewIntArray",
-        "Long":"NewLongArray",
-        "Float":"NewFloatArray",
-        "Double":"NewDoubleArray",
         }
         if self._type in tr.keys():
             return tr[self._type]
@@ -174,6 +146,16 @@ class TypeNode:
 
         intendStr = u" " * intend
         loopIntend = u" " * 4 + intendStr
+
+        tr = {"boolean": "jboolean",
+              "byte": "jbyte",
+              "char": "jchar",
+              "short": "jshort",
+              "int": "jint",
+              "long": "jlong",
+              "float": "jfloat",
+              "double": "jdouble",
+              }
 
         if not skipAray and self._isArray:
             res = intendStr + jVarName + u" = JNISingleton::env()->" + self._getArrayCreateJNIFunction() + u"(" + varName + u".size()"
@@ -193,33 +175,45 @@ class TypeNode:
             return res
 
         if self.isSimpleType():
-            tr = {"boolean":"jboolean",
-                  "Boolean": "jboolean",
-                  "byte":"jbyte",
-                  "Byte": "jbyte",
-                  "char":"jchar",
-                  "Char": "jchar",
-                  "short":"jshort",
-                  "Short": "jshort",
-                  "int":"jint",
-                  "Integer": "jint",
-                  "long":"jlong",
-                  "Long": "jlong",
-                  "float":"jfloat",
-                  "Float": "jfloat",
-                  "double":"jdouble",
-                  "Double": "jdouble"
-                  }
             return intendStr + jVarName + u" = (" + tr[self._type] + u")" + varName + u";\n"
 
+        if self.isPackedSimpleType():
+            tr2 = {
+                "Boolean": "boolean",
+                "Byte": "byte",
+                "Char": "char",
+                "Short": "short",
+                "Integer": "int",
+                "Long": "long",
+                "Float": "float",
+                "Double": "double",
+            }
+            clsVarName = u"clsName" + self._type + str(depth)
+            valueOfname = u"valueofMethod" + self._type + str(depth)
+            res = intendStr + u"jclass " +clsVarName + u" = JNISingleton::env()->FindClass(\"" + self.typeJNISignature(True) + "\");\n"
+            res += intendStr + u"if (" + clsVarName + u" == nullptr) throw std::runtime_error(\"Can not find "\
+                   + self.typeJNISignature(True) + u"\");\n"
+            res += intendStr + u"jmethodID " + valueOfname + u" = JNISingleton::env()->GetStaticMethodID(" +\
+                   clsVarName + ", \"valueOf\", \"(" + self._typeMapping['jni'][tr2[self._type]] + u")L"\
+                   + self.typeJNISignature(True) + u";\");\n"
+            res += intendStr + u"if (" + valueOfname + u" == nullptr) throw std::runtime_error(\"Can not find "\
+                   + self.typeJNISignature(True) + u" valueOf\");\n"
+            res += intendStr + jVarName + u" = JNISingleton::env()->CallStaticObjectMethod(" + clsVarName + u", " \
+                   + valueOfname + u", " + varName + ");\n"
+            return res
+
         if self._type == "List":
-            res = intendStr + u"jclass tmpJListClass" + str(depth) + u" = JNISingleton::env()->FindClass(\"Ljava/util/List\");\n"
+            res = intendStr + u"jclass tmpJListClass" + str(depth) + u" = JNISingleton::env()->FindClass(\"java/util/ArrayList\");\n"
             res += intendStr + u"if (tmpJListClass" + str(depth) + u" == nullptr) throw std::runtime_error(\"Cannot find Java.util.List\");\n"
             res += intendStr + u"jmethodID jListCtor_" + str(depth) + u" = JNISingleton::env()->GetMethodID(tmpJListClass" + str(depth) + u", \"<init>\", \"()V\");\n"
             res += intendStr + u"if (jListCtor_" + str(depth) + u" == nullptr) throw std::runtime_error(\"Cannot find Java.util.List constructor\");\n"
             res += intendStr + jVarName + u" = JNISingleton::env()->NewObject(tmpJListClass" + str(depth) + u", jListCtor_"+ str(depth) + u");\n"
             res += intendStr + u"jmethodID jListAdd" + str(depth) + u" = JNISingleton::env()->GetMethodID(tmpJListClass"+ str(depth) +\
-                   u", \"add\", \"(" + self._templateArgs[0].typeJNISignature() + u";)z\");\n"
+                   u", \"add\", \"(Ljava/lang/Object;)Z\");\n"
+
+            res += intendStr + u"if (jListAdd" + str(depth) + u" == nullptr) throw std::runtime_error(\"Cannot find Java.util.List add method\");\n"
+
+
             res += intendStr + u"for (int i = 0; i < " + varName + u".size(); ++i) {\n"
             res += loopIntend + self._templateArgs[0].toCPPJType() + u" jargtmp" + str(depth) + u";\n"
             res += self._templateArgs[0].typePack(u"jargtmp"+str(depth), varName + u"[i]", intend+4, depth+1)
@@ -232,7 +226,7 @@ class TypeNode:
             return res
 
         if self._type == "Map":
-            res = intendStr + u"jclass tmpJMapClass" + str(depth) + u" = JNISingleton::env()->FindClass(\"Ljava/util/HashMap\");\n"
+            res = intendStr + u"jclass tmpJMapClass" + str(depth) + u" = JNISingleton::env()->FindClass(\"java/util/HashMap\");\n"
             res += intendStr + u"if (tmpJMapClass" + str(depth) + u" == nullptr) throw std::runtime_error(\"Cannot find Java.util.HashMap\");\n"
             res += intendStr + u"jmethodID jMapCtor_" + str(depth) + u" = JNISingleton::env()->GetMethodID(tmpJMapClass" + str(depth) + u", \"<init>\", \"()V\");\n"
             res += intendStr + u"if (jMapCtor_" + str(depth) + u" == nullptr) throw std::runtime_error(\"Cannot find Java.util.Map constructor\");\n"
@@ -251,21 +245,13 @@ class TypeNode:
         intendStr = u" " * intend
         if self.isSimpleType():
             tr = {"boolean":"jboolean",
-                  #"Boolean": "jboolean",
                   "byte":"jbyte",
-                  #"Byte": "jbyte",
                   "char":"jchar",
-                  #"Char": "jchar",
                   "short":"jshort",
-                  #"Short": "jshort",
                   "int":"jint",
-                  #"Integer": "jint",
                   "long":"jlong",
-                  #"Long": "jlong",
                   "float":"jfloat",
-                  #"Float": "jfloat",
                   "double":"jdouble",
-                  #"Double": "jdouble"
                    }
             rev_tr = {v:k for k,v in tr.items()}
             return intendStr + varName + u" = (" + rev_tr[tr[self._type]] + u")" + jVarName + u";\n"
